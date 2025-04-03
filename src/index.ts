@@ -1,14 +1,18 @@
 const alreadyAutosizedSymbol = Symbol('Whether or not textarea is already being autosized')
 
-function parseOptions(options) {
+interface Options {
+    allowHorizontalScroll?: boolean
+}
+
+function parseOptions(options: Options) {
     const def = {
         allowHorizontalScroll: false
     }
 
-    return Object.fromEntries(Object.entries(def).map(([key, value]) => [key, options[key] ?? value]))
+    return Object.fromEntries(Object.entries(def).map(([key, value]) => [key, options[key as keyof Options] ?? value]))
 }
 
-function fixSize(element, options) {
+function fixSize(element: HTMLTextAreaElement, options: Options) {
     element.style.height = '0px'
     element.style.width = '0px'
     element.style.whiteSpace = 'pre'
@@ -63,9 +67,10 @@ function fixSize(element, options) {
     element.style.overflow = 'auto'
 }
 
-export function autosize(textarea, options = {}) {
+export function autosize(textarea: HTMLTextAreaElement, options: Options = {}) {
     options = parseOptions(options)
 
+    // @ts-ignore
     if(textarea[alreadyAutosizedSymbol]) {
         console.log('Textarea', textarea, 'is already being autosized, ignoring subsequent calls to autosize()')
         return
@@ -81,6 +86,7 @@ export function autosize(textarea, options = {}) {
         textarea.style.whiteSpace = 'pre'
     }
 
+    // @ts-ignore
     const { get, set } = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')
     Object.defineProperty(textarea, 'value', {
         get() {
@@ -95,9 +101,10 @@ export function autosize(textarea, options = {}) {
 
     textarea.style.resize = 'none'
     textarea.addEventListener('input', evt => {
-        fixSize(evt.target, options)
+        fixSize(textarea, options)
     })
     fixSize(textarea, options)
 
+    // @ts-ignore
     textarea[alreadyAutosizedSymbol] = true
 }
